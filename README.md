@@ -1,4 +1,4 @@
-# React Collapse 组件
+# React Collapsible 组件
 
 ## 使用方法
 ```js
@@ -24,7 +24,7 @@ renderHead = () => {
 ```
 
 ## 关键点
-- 如何更新`collapse` 内部的内容的高度
+- 如何更新`Collapsible` 内部的内容的高度
   - 整个项目中，`height` 共有三个值，`auto/ 0 / this.innerRef.current.scrollHeight` ，也就是根本就不用去计算，
   > `react-bootstrap`中设置高度是 `offsetHeight + marginTop + marginBottom`
 - 如何实现动画的效果
@@ -40,7 +40,7 @@ renderHead = () => {
   - 已展开的事件
     - 使用的元素上的 `onTransitionEnd` 事件，这时候判断当前状态是展开还是收起了，如果展开那就调用 `onOpen` ，如果结束就调用 `onClose` 事件
 - 用户可以自行接管动画的触发效果
-  - 在 triggerContainer 中触发的动画，用户可以自行接管，比如在 contentContainer 中设置默认的 `transition`样式，当触发动画时
+  - 在 `triggerContainer` 中触发的动画，用户可以自行接管，比如在 contentContainer 中设置默认的 `transition`样式，当触发动画时
   添加 `className` 为`show`，也就是触发之后的动画属性, 这样就能够实现动画效果了。
 
-注：Idea 和源码参考 [react-collapsible](https://www.npmjs.com/package/react-collapsible)
+注：Idea 和源码参考 [react-collapsible](https://www.npmjs.com/package/react-collapsible)，但我觉得我写的更好，还给对方修复了一个bug
