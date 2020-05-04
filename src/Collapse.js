@@ -1,19 +1,19 @@
 import React, {Component} from 'react';
 
-class Collapse extends Component {
+class Collapsible extends Component {
     innerRef = React.createRef();
     timeout = undefined;
 
     static defaultProps = {
-        easing: 'linear',
-        TriggerContainer: 'span',
+        wrapContainer: 'div',
+        triggerContainer: 'span',
+        contentContainer: 'div',
         overflowWhenOpen: 'hidden',
-        contentElement: 'div',
-        WrapContainer: 'div',
         lazyRender: false,
         open: false,
         transitionTime: 400,
-        transitionCloseTime: null,
+        easing: 'linear',
+        transitionCloseTime: null
     };
 
     constructor(props) {
@@ -30,7 +30,8 @@ class Collapse extends Component {
                 isClosed: false,
                 height: 'auto',
                 transition: 'none',
-                overflow: overflowWhenOpen
+                overflow: overflowWhenOpen,
+                inTransition: false
             }
         } else {
             const {transitionTime, easing} = props;
@@ -38,7 +39,8 @@ class Collapse extends Component {
                 isClosed: true,
                 height: 0,
                 transition: `height ${transitionTime}ms ${easing}`,
-                overflow: 'hidden'
+                overflow: 'hidden',
+                inTransition: false
             }
         }
     }
@@ -56,17 +58,6 @@ class Collapse extends Component {
                 });
             }, 50);
         }
-
-        // If there has been a change in the open prop (controlled by accordion)
-        if (prevProps.open !== this.props.open) {
-            if (this.props.open === true) {
-                this.openCollapsible();
-                this.props.onOpening();
-            } else {
-                this.closeCollapsible();
-                this.props.onClosing();
-            }
-        }
     }
 
     componentWillUnmount() {
@@ -78,7 +69,8 @@ class Collapse extends Component {
         this.setState({
             isClosed: true,
             height: this.innerRef.current.scrollHeight,
-            transition: `height ${transitionCloseTime ? transitionCloseTime : transitionTime}ms ${easing}`
+            transition: `height ${transitionCloseTime ? transitionCloseTime : transitionTime}ms ${easing}`,
+            inTransition: true
         });
     }
 
@@ -87,20 +79,24 @@ class Collapse extends Component {
         this.setState({
             height: this.innerRef.current.scrollHeight,
             transition: `height ${transitionTime}ms ${easing}`,
-            isClosed: false
+            isClosed: false,
+            inTransition: true
         });
     }
 
     handleTriggerClick(event) {
         const {triggerDisabled, handleTriggerClick, accordionPosition, onOpening, onClosing} = this.props;
-        const {isClosed} = this.state;
+        const {isClosed, inTransition} = this.state;
 
-        if (triggerDisabled) {
+        // transition 在没有完成时多次点击触发，会导致动画失效，所以在动画发生的过程中，记录当前动画的状态，动画过程中不让继续触发动画
+        if (triggerDisabled || inTransition) {
             return;
         }
 
         event.preventDefault();
 
+        // 用户自行接管触发动画的过程
+        // 比如在内容区的class设置默认transition属性，然后根据当前点击事件动态添加TransitionClassName来实现动画
         if (handleTriggerClick) {
             handleTriggerClick(accordionPosition)
         } else if (isClosed === true) {
@@ -113,7 +109,6 @@ class Collapse extends Component {
     }
 
     handleTransitionEnd(event) {
-        // 每次 handleTransitionEnd 失效都是从展开到关闭的时候
         if (event.target !== this.innerRef.current) {
             return;
         }
@@ -122,11 +117,15 @@ class Collapse extends Component {
         if (!this.state.isClosed) {
             this.setState({
                 height: 'auto',
-                overflow: overflowWhenOpen
+                overflow: overflowWhenOpen,
+                inTransition: false
             });
 
             onOpen && onOpen();
         } else {
+            this.setState({
+                inTransition: false
+            });
             onClose && onClose();
         }
     }
@@ -134,9 +133,9 @@ class Collapse extends Component {
     render() {
         const {height, transition, overflow, isClosed} = this.state;
         const {
-            TriggerContainer, trigger, lazyRender, children: propsChildren, triggerOpenedClassName,
-            triggerClassName: propsTriggerClassName, className: propsClassName, openedClassName,
-            WrapContainer, triggerStyle, contentClassName
+            wrapContainer: WrapContainer, triggerContainer: TriggerContainer, contentContainer: ContentContainer,
+            trigger, lazyRender, children: propsChildren, className: propsClassName, openedClassName,
+            triggerClassName: propsTriggerClassName, triggerOpenedClassName, triggerStyle, contentClassName
         } = this.props;
 
         const style = {
@@ -160,17 +159,17 @@ class Collapse extends Component {
                 >
                     {trigger}
                 </TriggerContainer>
-                <div
+                <ContentContainer
                     style={style}
                     className={contentClassName}
                     onTransitionEnd={this.handleTransitionEnd}
                     ref={this.innerRef}
                 >
                     {children}
-                </div>
+                </ContentContainer>
             </WrapContainer>
         )
     }
 }
 
-export default Collapse;
+export default Collapsible;
